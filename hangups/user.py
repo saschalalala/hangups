@@ -3,13 +3,18 @@
 from collections import namedtuple
 import asyncio
 import logging
-
+import json
+import os
 from hangups import exceptions
 
 logger = logging.getLogger(__name__)
 DEFAULT_NAME = 'Unknown'
-
+nickname_config = "/home/sascha/.hangups_nicknames.json"
 UserID = namedtuple('UserID', ['chat_id', 'gaia_id'])
+
+if os.path.isfile(nickname_config):
+    with (open(nickname_config), 'r') as f:
+        nickname_list = json.load(f)
 
 
 class User(object):
@@ -29,7 +34,19 @@ class User(object):
                            else self.full_name.split()[0])
         self.photo_url = photo_url
         self.emails = emails
+        if (nickname_list is not None):
+            if (self.full_name in nickname_list):
+                self.nick_name = nickname_list[self.full_name]
         self.is_self = is_self
+
+
+    @classmethod
+    def get_display_name(self):
+        if self.nick_name is not None:
+            return self.nick_nickname
+        else:
+            return self.first_name
+
 
     @staticmethod
     def from_entity(entity, self_user_id):
